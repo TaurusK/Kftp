@@ -9,7 +9,7 @@ php ftp上传类
  public function ftp_test(){
         $url = 'qxu1146470112.my3w.com';
         $acc = 'qxu1146470112';
-        $pwd = '568635172';
+        $pwd = '';
         $ftp = new Kftp($url);
 
         //登录ftp
