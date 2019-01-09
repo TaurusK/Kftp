@@ -1,7 +1,7 @@
 <?php
 /**
  * ftp工具类
- * versions:1.2
+ * versions:1.2.1
  * author:k
  * date:2019/01/09
  */
@@ -64,8 +64,10 @@ class Kftp {
 				throw new Exception("Kftp->push():不能打开本地文件（{$local_file}），目录或文件不存在，请检查目录或文件和权限 ");	
 			}
 			//检查远程路径中的目录是否存在，不存在则创建
-			$remote_file = $this->mkdir($remote_file);
-			ftp_put($this->ftp,$remote_file,$local_file,$mode);
+			$remote_file_new = $this->mkdir($remote_file);
+			if(@ftp_put($this->ftp,$remote_file_new,$local_file,$mode) !==true){
+				throw new Exception("Kftp->push():文件（{$remote_file_new}），创建失败，请检查目录或文件和权限 ");
+			}
 		}catch(Exception $e){
 			echo $e->getMessage();
 			return false;
