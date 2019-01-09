@@ -1,55 +1,94 @@
 <?php
 /**
  * ftp工具类
- * versions:1.0
+ * versions:1.2
  * author:k
- * date:2019/01/08
+ * date:2019/01/09
  */
 class Kftp {
 
 	public $ftp;
 
-	public function __construct($url,$port='21',$timeout='90'){
-		$this->ftp = ftp_connect($url,$port,$timeout);
+	public function __construct($url,$acc,$pwd,$port='21',$timeout='90'){
+		try {
+			if(empty($acc) && empty($pwd)){
+				throw new Exception("Kftp:登录名或密码未传，请登录后在进行相关操作 ");
+			}elseif(empty($url)){
+				throw new Exception("Kftp:ftp地址未传 ");
+			}elseif(($this->ftp = @ftp_connect($url,$port,$timeout)) === false){
+				throw new Exception("Kftp:ftp连接失败，请检查ftp地址是否正确 ");
+			}elseif($this->login($acc,$pwd) !== true){
+				throw new Exception("Kftp:登录失败，请检查账号或密码是否正确 ");
+			}
+		}catch(Exception $e){
+			echo $e->getMessage();
+		}
 
 	}
 
 	/**
-	 * ftp登录
+	 * [login ftp登录]
+	 * @param  string $acc [必选]ftp账号
+	 * @param  string $pwd [必选]ftp密码
+	 * @return boolean     
 	 */
-	public function login($acc,$pwd){
-		return ftp_login($this->ftp,$acc,$pwd);
+	private function login($acc,$pwd){
+
+		return @ftp_login($this->ftp,$acc,$pwd);
 	}
 
 	/**
-	 * 查看当前目录
+	 * [pwd 查看当前目录]
+	 * @return 成功返回当前目录，失败抛出异常
 	 */
 	public function pwd(){
 		return ftp_pwd($this->ftp);
 	}
 
 	/**
-	 * 上传文件到指定目录
+	 * [push 上传文件到指定目录]
+	 * @param  string $remote_file [必选]远程路径
+	 * @param  string $local_file  [必选]本地文件路径
+	 * @param  int    $mode        [可选]上传模式，有FTP_ASCII和FTP_BINARY两种
+	 * @return 
+	 * 
 	 * 这里需要注意的是远程路径，远程路径不以./或/开头，而且如果指定了目录一定是要目录下有文件名的如XXX/test.txt
 	 * 没有指定目录时这个远程路径就是你上传到远程后的文件名，如test.txt
 	 * 上传成功返回true,否则php会抛出异常,所以判断时要用===true
 	 */
 	public function push($remote_file,$local_file,$mode=FTP_BINARY){
 
-		$remote_file = $this->mkdir($remote_file);
+		try{
+			//检查本地目录或文件是否存在
+			if(!file_exists($local_file)){
+				throw new Exception("Kftp->push():不能打开本地文件（{$local_file}），目录或文件不存在，请检查目录或文件和权限 ");	
+			}
+			//检查远程路径中的目录是否存在，不存在则创建
+			$remote_file = $this->mkdir($remote_file);
+			ftp_put($this->ftp,$remote_file,$local_file,$mode);
+		}catch(Exception $e){
+			echo $e->getMessage();
+			return false;
+		}
 
-		return ftp_put($this->ftp,$remote_file,$local_file,$mode);
+		return true;
 	}
 
 	/**
-	 * 改变当前目录
+	 * [chdir 改变当前目录]
+	 * @param  string $dir [必选]指定目录
+	 * @return 成功返回true，失败抛出异常
 	 */
 	public function chdir($dir){
+
 		return ftp_chdir($this->ftp,$dir);
 	}
 
 	/**
-	 * 创建目录并当前目录变更到创建的目录中
+	 * [mkdir 创建目录并当前目录变更到创建的目录中]
+	 * @param  string $path [必选]文件路径
+	 * @return 
+	 *
 	 * 成功返回路径的文件名,否则php会抛出异常并返回false,所以判断时要用!==false
 	 */
 	public function mkdir($path){
@@ -72,10 +111,10 @@ class Kftp {
 					if($newDir !==false){  //创建新目录成功并变更到这个目录中
 						if($this->chdir($newDir)!==true){
 							//变更目录失败需要抛出异常
-							throw new Exception("Kftp:变更（{$newDir}）目录失败，请检查权限");	
+							throw new Exception("Kftp->mkdir():变更（{$newDir}）目录失败，请检查权限 ");	
 						}
 					}else{   //创建新目录失败
-						throw new Exception("Kftp:创建（{$dir}）目录失败，请检查权限");	
+						throw new Exception("Kftp->mkdir():创建（{$dir}）目录失败，请检查权限 ");	
 					}
 				}
 			}
@@ -86,5 +125,6 @@ class Kftp {
 		}
 		return $remote_file;
 	}
+
 
 }
