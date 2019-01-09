@@ -1,7 +1,7 @@
 <?php
 /**
  * ftp工具类
- * versions:1.2.1
+ * versions:1.2.2
  * author:k
  * date:2019/01/09
  */
@@ -20,6 +20,7 @@ class Kftp {
 			}elseif($this->login($acc,$pwd) !== true){
 				throw new Exception("Kftp:登录失败，请检查账号或密码是否正确 ");
 			}
+			@ftp_pasv($this->ftp,1); // 打开被动模拟,【注意】一定要打开被动模式，要先登录在打开
 		}catch(Exception $e){
 			echo $e->getMessage();
 		}
