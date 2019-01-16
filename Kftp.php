@@ -1,7 +1,7 @@
 <?php
 /**
  * ftp工具类
- * versions:1.2.2
+ * versions:1.2.3
  * author:k
  * date:2019/01/09
  */
@@ -65,7 +65,7 @@ class Kftp {
 				throw new Exception("Kftp->push():不能打开本地文件（{$local_file}），目录或文件不存在，请检查目录或文件和权限 ");	
 			}
 			//检查远程路径中的目录是否存在，不存在则创建
-			$remote_file_new = $this->mkdir($remote_file);
+			$remote_file_new = $this->createFileDir($remote_file);
 			if(@ftp_put($this->ftp,$remote_file_new,$local_file,$mode) !==true){
 				throw new Exception("Kftp->push():文件（{$remote_file_new}），创建失败，请检查目录或文件和权限 ");
 			}
@@ -88,13 +88,13 @@ class Kftp {
 	}
 
 	/**
-	 * [mkdir 创建目录并当前目录变更到创建的目录中]
+	 * [createFileDir 创建目录并当前目录变更到创建的目录中]
 	 * @param  string $path [必选]文件路径
 	 * @return 
 	 *
 	 * 成功返回路径的文件名,否则php会抛出异常并返回false,所以判断时要用!==false
 	 */
-	public function mkdir($path){
+	public function createFileDir($path){
 
 		try{
 			//获取各层目录
@@ -114,10 +114,10 @@ class Kftp {
 					if($newDir !==false){  //创建新目录成功并变更到这个目录中
 						if($this->chdir($newDir)!==true){
 							//变更目录失败需要抛出异常
-							throw new Exception("Kftp->mkdir():变更（{$newDir}）目录失败，请检查权限 ");	
+							throw new Exception("Kftp->createFileDir():变更（{$newDir}）目录失败，请检查权限 ");	
 						}
 					}else{   //创建新目录失败
-						throw new Exception("Kftp->mkdir():创建（{$dir}）目录失败，请检查权限 ");	
+						throw new Exception("Kftp->createFileDir():创建（{$dir}）目录失败，请检查权限 ");	
 					}
 				}
 			}
